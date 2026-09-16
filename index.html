@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agentes de IA — AM BI</title>
+<meta name="description" content="Demonstração de agentes de IA conectados aos dados de empresas fictícias: gestão, clínica e marketing. AM BI Análises Inteligentes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0b16;--panel:#151830;--panel-2:#1b1f3a;--line:#272c4c;
+  --ink:#f3f4fa;--muted:#9298bd;--accent:#8b7cf6;--accent-soft:#a89bf9;--teal:#5fe3d0;
+  --ok:#2fb48a;--warn:#d99a2b;--bad:#e0645f;
+  --light:#f7f8fc;--light-ink:#1b1f35;--light-muted:#5d6486;
+  --radius:14px;--maxw:1180px;
+}
+:root:not([data-theme="light"]){color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--accent-soft)}
+button{font-family:inherit}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:22px 20px 56px}
+
+.top{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start;justify-content:space-between;margin-bottom:20px}
+.brand{display:flex;align-items:center;gap:11px}
+.brand-mark{width:34px;height:34px;border-radius:9px;flex:0 0 auto;background:linear-gradient(145deg,var(--accent),#5b4fd6);display:grid;place-items:center;font-weight:700;font-size:13px;letter-spacing:.04em;color:#fff}
+.brand-name{font-weight:600;font-size:15px;letter-spacing:.01em}
+.brand-sub{font-size:12.5px;color:var(--muted);margin-top:1px}
+.seal{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:rgba(255,255,255,.02);padding:7px 12px;border-radius:999px;font-size:12.5px;color:var(--muted)}
+.seal b{color:var(--ink);font-weight:500}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--warn);flex:0 0 auto}
+
+/* seletor de agente */
+.picker{border:1px solid var(--line);background:var(--panel);border-radius:var(--radius);padding:7px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:24px}
+.pick{background:transparent;border:1px solid transparent;border-radius:10px;padding:11px 14px;text-align:left;cursor:pointer;color:var(--muted);display:block;width:100%}
+.pick .n{display:block;font-size:14.6px;font-weight:600;color:var(--ink);margin-bottom:1px}
+.pick .d{display:block;font-size:12.6px;line-height:1.35}
+.pick:hover{background:var(--panel-2)}
+.pick[aria-selected="true"]{background:var(--accent);border-color:var(--accent)}
+.pick[aria-selected="true"] .n,.pick[aria-selected="true"] .d{color:#fff}
+.pick[aria-selected="true"] .d{opacity:.82}
+.pick:focus-visible{outline:2px solid var(--accent-soft);outline-offset:2px}
+@media (max-width:760px){.picker{grid-template-columns:1fr}.pick{padding:10px 12px}}
+
+h1{font-size:clamp(23px,3.6vw,32px);line-height:1.2;margin:0 0 8px;font-weight:600;letter-spacing:-.02em;max-width:24ch}
+.lede{color:var(--muted);max-width:64ch;margin:0 0 22px;font-size:15.5px}
+
+.grid{display:grid;grid-template-columns:300px 1fr;gap:18px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius)}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal)}
+
+.side{padding:18px}
+.side h2{font-size:15px;margin:10px 0 3px;font-weight:600}
+.side .co{font-size:12.8px;color:var(--muted);margin-bottom:16px}
+.kpis{display:grid;gap:9px;margin-bottom:18px}
+.kpi{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:11px 12px}
+.kpi .k{font-size:12px;color:var(--muted)}
+.kpi .v{font-size:19px;font-weight:600;letter-spacing:-.01em;margin-top:2px}
+.kpi .d{font-size:12px;margin-top:1px}
+.up{color:var(--ok)}.down{color:var(--bad)}.flat{color:var(--muted)}
+.srcs{border-top:1px solid var(--line);padding-top:14px}
+.src{display:flex;align-items:center;gap:9px;font-size:13.2px;padding:5px 0;color:var(--muted)}
+.src i{width:7px;height:7px;border-radius:50%;background:var(--ok);flex:0 0 auto;font-style:normal}
+.src b{color:var(--ink);font-weight:500}
+@media (max-width:900px){.side{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}.side .head,.side .srcs{grid-column:1/-1}.kpis{grid-column:1/-1;grid-template-columns:repeat(3,1fr)}}
+@media (max-width:560px){.kpis{grid-template-columns:1fr}.side{display:block}}
+
+.chat{display:flex;flex-direction:column;min-height:560px}
+.chat-head{display:flex;align-items:center;gap:11px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.avatar{width:32px;height:32px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;background:linear-gradient(145deg,#2fb48a,#1c8f75);color:#fff;font-size:11.5px;font-weight:700;letter-spacing:.03em}
+.chat-head .t{font-size:14.5px;font-weight:600}
+.chat-head .s{font-size:12.2px;color:var(--muted)}
+.mode{margin-left:auto;font-size:11.5px;color:var(--muted);border:1px solid var(--line);padding:4px 10px;border-radius:999px;display:flex;align-items:center;gap:6px}
+.mode i{width:6px;height:6px;border-radius:50%;background:var(--muted);font-style:normal}
+.mode.live i{background:var(--teal);box-shadow:0 0 0 3px rgba(95,227,208,.15)}
+
+.stream{padding:18px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;flex:1;max-height:62vh}
+@media (max-width:900px){.stream{max-height:none}}
+.msg{max-width:88%;display:flex;flex-direction:column;gap:8px}
+.msg.user{align-self:flex-end;align-items:flex-end}
+.bubble{padding:12px 15px;border-radius:14px;font-size:14.6px;line-height:1.6}
+.msg.user .bubble{background:var(--accent);color:#fff;border-bottom-right-radius:5px}
+.msg.bot .bubble{background:var(--light);color:var(--light-ink);border-bottom-left-radius:5px}
+.msg.bot .bubble p{margin:0 0 9px}
+.msg.bot .bubble p:last-child{margin-bottom:0}
+.msg.bot .bubble strong{font-weight:600}
+.msg.bot .bubble .ask{color:#4a3fb8;font-weight:500}
+
+.mini{width:100%;border-collapse:collapse;font-size:13.4px;margin:4px 0 9px}
+.mini th{text-align:left;font-weight:500;color:var(--light-muted);font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;padding:0 10px 6px 0;border-bottom:1px solid #e6e8f2}
+.mini td{padding:7px 10px 7px 0;border-bottom:1px solid #eef0f7;vertical-align:top}
+.mini tr:last-child td{border-bottom:0}
+.mini td.num,.mini th.num{text-align:right;padding-right:0}
+.mini td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.tag{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.8px;white-space:nowrap}
+.tag.bad{background:#fdeaea;color:#b23b37}
+.tag.ok{background:#e3f7f1;color:#1d7a62}
+.tag.mid{background:#ece9fe;color:#5a4bcc}
+
+.typing{display:inline-flex;gap:4px;align-items:center;height:20px}
+.typing span{width:6px;height:6px;border-radius:50%;background:#b9bed6;animation:bounce 1.1s infinite}
+.typing span:nth-child(2){animation-delay:.16s}
+.typing span:nth-child(3){animation-delay:.32s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.55}30%{transform:translateY(-4px);opacity:1}}
+
+.composer{border-top:1px solid var(--line);padding:14px 18px 16px}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:11px}
+.chip{background:var(--panel-2);border:1px solid var(--line);color:var(--ink);padding:7px 12px;border-radius:999px;font-size:13px;cursor:pointer;line-height:1.35;text-align:left}
+.chip:hover{border-color:var(--accent);color:#fff}
+.chip:focus-visible,.send:focus-visible,#q:focus-visible,.cta:focus-visible{outline:2px solid var(--accent-soft);outline-offset:2px}
+.row{display:flex;gap:9px}
+#q{flex:1;background:var(--panel-2);border:1px solid var(--line);border-radius:11px;color:var(--ink);padding:12px 14px;font-size:14.6px}
+#q::placeholder{color:#6f7599}
+#q:focus{border-color:var(--accent)}
+.send{background:var(--accent);border:0;color:#fff;font-weight:600;font-size:14.4px;padding:0 20px;border-radius:11px;cursor:pointer}
+.send:disabled{opacity:.45;cursor:default}
+
+.foot{margin-top:20px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between}
+.foot p{margin:6px 0 0;color:var(--muted);font-size:14px;max-width:56ch}
+.foot h3{margin:0;font-size:16.5px;font-weight:600}
+.cta{background:var(--accent);color:#fff;text-decoration:none;font-weight:600;font-size:14.5px;padding:12px 20px;border-radius:11px;white-space:nowrap}
+.note{margin-top:16px;color:#6f7599;font-size:12.6px;max-width:72ch}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div class="brand">
+      <div class="brand-mark">AM</div>
+      <div>
+        <div class="brand-name">AM BI Análises Inteligentes</div>
+        <div class="brand-sub">Agentes de IA sobre os dados da operação</div>
+      </div>
+    </div>
+    <div class="seal"><span class="dot"></span><b>Demonstração</b> · dados fictícios</div>
+  </div>
+
+  <div class="picker" id="picker" role="tablist" aria-label="Escolha o agente"></div>
+
+  <h1 id="h1"></h1>
+  <p class="lede" id="lede"></p>
+
+  <div class="grid">
+    <aside class="card side">
+      <div class="head">
+        <div class="eyebrow">Empresa da demonstração</div>
+        <h2 id="empresa"></h2>
+        <div class="co" id="empresaSub"></div>
+      </div>
+      <div class="kpis" id="kpis"></div>
+      <div class="srcs">
+        <div class="eyebrow" style="margin-bottom:9px">Fontes conectadas</div>
+        <div id="fontes"></div>
+      </div>
+    </aside>
+
+    <main class="card chat">
+      <div class="chat-head">
+        <div class="avatar">IA</div>
+        <div>
+          <div class="t" id="agenteNome"></div>
+          <div class="s" id="agenteSub"></div>
+        </div>
+        <div class="mode" id="mode"><i></i><span>Base de demonstração</span></div>
+      </div>
+      <div class="stream" id="stream" aria-live="polite"></div>
+      <div class="composer">
+        <div class="chips" id="chips"></div>
+        <div class="row">
+          <input id="q" type="text" autocomplete="off" placeholder="Faça uma pergunta...">
+          <button class="send" id="send">Perguntar</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="foot">
+    <div>
+      <h3>Quer um agente desses respondendo sobre os seus dados?</h3>
+      <p>O diagnóstico mapeia onde estão as suas informações hoje e o que dá para automatizar primeiro.</p>
+    </div>
+    <a class="cta" href="https://ambianalises.com.br" target="_blank" rel="noopener">Agendar diagnóstico</a>
+  </div>
+
+  <p class="note">Todos os dados desta página são fictícios e gerados para demonstração. Nomes de empresas, clínicas, pacientes, campanhas e valores não têm relação com clientes reais. Em um projeto real, o agente lê as bases do próprio cliente, com acesso somente leitura, controle de permissão por usuário e registro de todas as consultas.</p>
+</div>
+
+<script>
+/* =========================================================
+   HELPERS
+   ========================================================= */
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;var t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+var HOJE=new Date();HOJE.setHours(0,0,0,0);
+function dias(n){var d=new Date(HOJE);d.setDate(d.getDate()-n);return d}
+function BRL(v){return 'R$ '+Math.round(v).toLocaleString('pt-BR')}
+function PCT(v){return (v>0?'+':'')+v.toFixed(1).replace('.',',')+'%'}
+function P1(v){return v.toFixed(1).replace('.',',')+'%'}
+function DATA(d){return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}
+function tabela(cols,rows){
+  var h='<table class="mini"><thead><tr>'+cols.map(function(c){return '<th'+(c.num?' class="num"':'')+'>'+c.t+'</th>'}).join('')+'</tr></thead><tbody>';
+  rows.forEach(function(r){h+='<tr>'+r.map(function(cell,i){return '<td'+(cols[i].num?' class="num"':'')+'>'+cell+'</td>'}).join('')+'</tr>'});
+  return h+'</tbody></table>';
+}
+function porChave(lista,chave){var m={};lista.forEach(function(x){m[x[chave]]=(m[x[chave]]||0)+1});return m}
+
+var NICHOS={};
+
+/* =========================================================
+   AGENTE 1 — GESTÃO
+   ========================================================= */
+NICHOS.gestao=(function(){
+var R=rng(20260916);
+function pick(a){return a[Math.floor(R()*a.length)]}
+function between(a,b){return a+R()*(b-a)}
+
+var UNIDADES=['Norte','Centro','Sul'];
+var CLIENTES=[
+ {nome:'Comercial Norte',unidade:'Norte'},{nome:'Distribuidora Vale',unidade:'Centro'},
+ {nome:'Atacado Sul',unidade:'Sul'},{nome:'Construtora Ipanema',unidade:'Centro'},
+ {nome:'Elétrica Siderúrgica',unidade:'Norte'},{nome:'Hidra Instalações',unidade:'Sul'},
+ {nome:'Metalpar Manutenção',unidade:'Norte'},{nome:'Casa do Construtor Leste',unidade:'Centro'},
+ {nome:'Engebras Obras',unidade:'Sul'},{nome:'Fabriciano Materiais',unidade:'Centro'},
+ {nome:'Usimec Serviços',unidade:'Norte'},{nome:'Reforma Fácil',unidade:'Sul'}
+];
+var PRODUTOS=[
+ {sku:'2231',nome:'Conector prensa-cabo 3/4"',preco:18.4,estoque:0,minimo:60},
+ {sku:'1180',nome:'Cabo flexível 2,5mm (rolo 100m)',preco:389,estoque:34,minimo:25},
+ {sku:'1902',nome:'Disjuntor DIN 25A',preco:41.9,estoque:11,minimo:40},
+ {sku:'3340',nome:'Tubo PVC 50mm (barra 6m)',preco:64.5,estoque:210,minimo:80},
+ {sku:'3352',nome:'Joelho PVC 50mm',preco:7.3,estoque:640,minimo:200},
+ {sku:'2410',nome:'Eletroduto galvanizado 1"',preco:52.8,estoque:18,minimo:45},
+ {sku:'1745',nome:'Quadro de distribuição 12 div.',preco:236,estoque:27,minimo:15},
+ {sku:'2890',nome:'Registro de gaveta 1/2"',preco:33.7,estoque:145,minimo:60},
+ {sku:'1520',nome:'Fita isolante 20m (caixa 10un)',preco:96,estoque:88,minimo:40},
+ {sku:'4105',nome:'Bomba centrífuga 1/2cv',preco:742,estoque:9,minimo:6}
+];
+var PEDIDOS=[],num=4630;
+for(var d=90;d>=0;d--){
+  var data=dias(d),qtd=(data.getDay()===0)?0:(data.getDay()===6?1:Math.round(between(1,3.4)));
+  for(var i=0;i<qtd;i++){
+    var c=pick(CLIENTES),p=pick(PRODUTOS),itens=Math.round(between(2,26));
+    var valor=Math.round(p.preco*itens*between(1.6,4.2)*100)/100;
+    var status=(d<=4&&R()<0.55)?'Em produção':'Concluído';
+    PEDIDOS.push({id:'#'+(num++),data:data,cliente:c.nome,unidade:c.unidade,sku:p.sku,produto:p.nome,itens:itens,valor:valor,status:status,motivo:null});
+  }
+}
+[{id:'#4821',dia:1,cliente:'Comercial Norte',unidade:'Norte',sku:'2231',motivo:'Ruptura de estoque',valor:8420},
+ {id:'#4816',dia:2,cliente:'Elétrica Siderúrgica',unidade:'Norte',sku:'2231',motivo:'Ruptura de estoque',valor:12180},
+ {id:'#4809',dia:4,cliente:'Metalpar Manutenção',unidade:'Norte',sku:'2231',motivo:'Ruptura de estoque',valor:5390},
+ {id:'#4812',dia:3,cliente:'Engebras Obras',unidade:'Sul',sku:'1902',motivo:'Atraso da transportadora',valor:4260},
+ {id:'#4804',dia:5,cliente:'Fabriciano Materiais',unidade:'Centro',sku:'3340',motivo:'Pendência de crédito',valor:3180}
+].forEach(function(a){
+  var prod=PRODUTOS.filter(function(x){return x.sku===a.sku})[0];
+  PEDIDOS.push({id:a.id,data:dias(a.dia),cliente:a.cliente,unidade:a.unidade,sku:a.sku,produto:prod.nome,
+    itens:Math.round(a.valor/prod.preco),valor:a.valor,status:'Atrasado',motivo:a.motivo});
+});
+PEDIDOS.sort(function(a,b){return a.data-b.data});
+
+/* normaliza o mês corrente para uma variação plausível (~ +6%) */
+(function(){
+  var ini=new Date(HOJE.getFullYear(),HOJE.getMonth(),1);
+  var iniA=new Date(HOJE.getFullYear(),HOJE.getMonth()-1,1);
+  var fimA=new Date(HOJE.getFullYear(),HOJE.getMonth()-1,HOJE.getDate());
+  function soma(a,b){return PEDIDOS.filter(function(p){return p.data>=a&&p.data<=b}).reduce(function(s,p){return s+p.valor},0)}
+  var atual=soma(ini,HOJE),ant=soma(iniA,fimA);
+  if(atual>0&&ant>0){
+    var fator=(ant*1.062)/atual;
+    PEDIDOS.forEach(function(p){if(p.data>=ini&&p.status!=='Atrasado')p.valor=Math.round(p.valor*fator*100)/100});
+  }
+})();
+
+var RECEBER=[];
+PEDIDOS.forEach(function(p){
+  if(p.status!=='Concluído')return;
+  var venc=new Date(p.data);venc.setDate(venc.getDate()+30);
+  RECEBER.push({id:p.id,cliente:p.cliente,valor:p.valor,venc:venc,pago:venc<HOJE?R()<0.86:false});
+});
+
+var M={
+  fatEntre:function(ini,fim){return PEDIDOS.filter(function(p){return p.data>=ini&&p.data<=fim}).reduce(function(s,p){return s+p.valor},0)},
+  mes:function(){
+    var ini=new Date(HOJE.getFullYear(),HOJE.getMonth(),1),atual=M.fatEntre(ini,HOJE);
+    var iniA=new Date(HOJE.getFullYear(),HOJE.getMonth()-1,1),fimA=new Date(HOJE.getFullYear(),HOJE.getMonth()-1,HOJE.getDate());
+    var ant=M.fatEntre(iniA,fimA);
+    return {atual:atual,anterior:ant,var:ant?((atual-ant)/ant)*100:0,dia:HOJE.getDate()};
+  },
+  ticket:function(){var l=PEDIDOS.filter(function(p){return p.data>=dias(30)});return l.length?l.reduce(function(s,p){return s+p.valor},0)/l.length:0},
+  atrasados:function(){return PEDIDOS.filter(function(p){return p.status==='Atrasado'}).sort(function(a,b){return b.data-a.data})},
+  unidades:function(nd){
+    var o={};UNIDADES.forEach(function(u){o[u]={fat:0,ped:0,atraso:0}});
+    PEDIDOS.filter(function(p){return p.data>=dias(nd)}).forEach(function(p){o[p.unidade].fat+=p.valor;o[p.unidade].ped++;if(p.status==='Atrasado')o[p.unidade].atraso++});
+    return o;
+  },
+  ruptura:function(){return PRODUTOS.filter(function(p){return p.estoque<p.minimo}).sort(function(a,b){return (a.estoque/a.minimo)-(b.estoque/b.minimo)})},
+  inad:function(md){
+    return RECEBER.filter(function(r){return !r.pago&&Math.floor((HOJE-r.venc)/864e5)>=md})
+      .map(function(r){r.atraso=Math.floor((HOJE-r.venc)/864e5);return r}).sort(function(a,b){return b.atraso-a.atraso});
+  },
+  topClientes:function(nd,n){
+    var m={};PEDIDOS.filter(function(p){return p.data>=dias(nd)}).forEach(function(p){
+      m[p.cliente]=m[p.cliente]||{nome:p.cliente,fat:0,ped:0,unidade:p.unidade};m[p.cliente].fat+=p.valor;m[p.cliente].ped++});
+    return Object.keys(m).map(function(k){return m[k]}).sort(function(a,b){return b.fat-a.fat}).slice(0,n);
+  },
+  queda:function(){
+    var a={},b={};
+    PEDIDOS.forEach(function(p){
+      if(p.data>=dias(30))a[p.cliente]=(a[p.cliente]||0)+p.valor;
+      else if(p.data>=dias(60))b[p.cliente]=(b[p.cliente]||0)+p.valor});
+    return Object.keys(b).map(function(k){return {nome:k,antes:b[k],agora:a[k]||0,varp:(((a[k]||0)-b[k])/b[k])*100}})
+      .sort(function(x,y){return x.varp-y.varp}).slice(0,4);
+  },
+  topProdutos:function(nd,n){
+    var m={};PEDIDOS.filter(function(p){return p.data>=dias(nd)}).forEach(function(p){
+      m[p.sku]=m[p.sku]||{sku:p.sku,nome:p.produto,fat:0,itens:0};m[p.sku].fat+=p.valor;m[p.sku].itens+=p.itens});
+    return Object.keys(m).map(function(k){return m[k]}).sort(function(a,b){return b.fat-a.fat}).slice(0,n);
+  }
+};
+
+var I={};
+I.atraso=function(){
+  var at=M.atrasados(),norte=at.filter(function(p){return p.unidade==='Norte'});
+  var valor=at.reduce(function(s,p){return s+p.valor},0);
+  var prod=PRODUTOS[0];
+  return {html:'<p>São <strong>'+at.length+' pedidos em atraso</strong> agora, somando '+BRL(valor)+' em faturamento parado. '+norte.length+' deles estão na unidade Norte e têm a mesma causa: ruptura do SKU 2231 ('+prod.nome+'), zerado contra um mínimo de '+prod.minimo+' unidades.</p>'+
+    tabela([{t:'Pedido'},{t:'Cliente'},{t:'Unidade'},{t:'Motivo'},{t:'Valor',num:true}],
+      at.map(function(p){return [p.id,p.cliente,p.unidade,'<span class="tag '+(p.motivo==='Ruptura de estoque'?'bad':'mid')+'">'+p.motivo+'</span>',BRL(p.valor)]}))+
+    '<p>As outras duas unidades não tiveram esse problema no período. Não é falha de processo, é compra.</p>',
+   oferta:'Quer que eu monte o pedido de reposição do 2231 e avise o time de compras?',
+   sim:'<p>Feito. Numa implantação real eu faria três coisas: abriria a solicitação de compra do SKU 2231 com cobertura de 30 dias, enviaria o resumo ao responsável de compras no WhatsApp ou Teams, e avisaria o comercial dos 3 clientes impactados antes de eles ligarem cobrando.</p><p class="ask">Quer ver como ficaria esse aviso automático?</p>'};
+};
+I.faturamento=function(){
+  var mc=M.mes(),dif=mc.atual-mc.anterior,un=M.unidades(30);
+  return {html:'<p>Até o dia '+mc.dia+', o faturamento do mês está em <strong>'+BRL(mc.atual)+'</strong>, contra '+BRL(mc.anterior)+' no mesmo período do mês passado. Variação de <strong>'+PCT(mc.var)+'</strong>, ou '+BRL(Math.abs(dif))+(dif>=0?' a mais.':' a menos.')+'</p>'+
+    tabela([{t:'Unidade'},{t:'Faturamento 30d',num:true},{t:'Pedidos',num:true}],UNIDADES.map(function(u){return [u,BRL(un[u].fat),un[u].ped]}))+
+    '<p>O ticket médio dos últimos 30 dias está em '+BRL(M.ticket())+'.</p>',
+   oferta:'Quer que eu quebre isso por cliente?',
+   sim:function(){var t=M.topClientes(30,5);
+     return {html:'<p>Os cinco clientes que mais faturaram nos últimos 30 dias:</p>'+
+       tabela([{t:'Cliente'},{t:'Unidade'},{t:'Faturamento',num:true},{t:'Pedidos',num:true}],t.map(function(c){return [c.nome,c.unidade,BRL(c.fat),c.ped]})),
+      oferta:'Quer receber esse ranking toda segunda de manhã, automaticamente?'}}};
+};
+I.inad=function(){
+  var l=M.inad(30),total=l.reduce(function(s,r){return s+r.valor},0),pc={};
+  l.forEach(function(r){pc[r.cliente]=pc[r.cliente]||{v:0,n:0,max:0};pc[r.cliente].v+=r.valor;pc[r.cliente].n++;pc[r.cliente].max=Math.max(pc[r.cliente].max,r.atraso)});
+  var rows=Object.keys(pc).map(function(k){return [k,pc[k].n,pc[k].max+' dias',BRL(pc[k].v)]}).sort(function(a,b){return parseInt(b[2])-parseInt(a[2])}).slice(0,6);
+  return {html:'<p>Há <strong>'+BRL(total)+'</strong> vencidos há mais de 30 dias, em '+l.length+' títulos.</p>'+
+    tabela([{t:'Cliente'},{t:'Títulos',num:true},{t:'Atraso máximo'},{t:'Valor',num:true}],rows)+
+    '<p>Vale olhar os dois primeiros: continuam comprando enquanto os títulos antigos seguem em aberto.</p>',
+   oferta:'Quer que eu bloqueie novos pedidos acima de 60 dias, ou só avise o comercial?',
+   sim:'<p>O caminho recomendado é o aviso antes do bloqueio: o agente manda a lista ao financeiro e ao gerente comercial toda segunda, e só sugere bloqueio quando o título passa da régua que você definir. A regra fica sob seu controle, não sob o modelo.</p><p class="ask">Quer ver como seria essa régua configurada?</p>'};
+};
+I.estoque=function(){
+  var r=M.ruptura();
+  return {html:'<p><strong>'+r.length+' itens</strong> estão abaixo do estoque mínimo, e um deles já está zerado.</p>'+
+    tabela([{t:'SKU'},{t:'Produto'},{t:'Em estoque',num:true},{t:'Mínimo',num:true}],
+      r.map(function(p){return [p.sku,p.nome,(p.estoque===0?'<span class="tag bad">0</span>':p.estoque),p.minimo]}))+
+    '<p>O 2231 é o mais crítico: além de zerado, é ele que está segurando os 3 pedidos atrasados da unidade Norte.</p>',
+   oferta:'Quer que eu calcule a reposição com base no giro dos últimos 90 dias?',
+   sim:function(){
+     var p=M.topProdutos(90,10).filter(function(x){return x.sku==='2231'})[0];
+     var giro=p?Math.round(p.itens/3):120;
+     return {html:'<p>O SKU 2231 girou cerca de <strong>'+giro+' unidades por mês</strong> nos últimos 90 dias. Para 30 dias de cobertura mais a margem do estoque mínimo, a sugestão de compra é de '+(giro+60)+' unidades.</p><p>O cálculo aplica a política de estoque que a empresa definir. O agente não inventa a regra, ele executa a sua.</p>',
+       oferta:'Quer a mesma conta para os outros itens abaixo do mínimo?'}}};
+};
+I.clientes=function(){
+  var t=M.topClientes(90,6);
+  var total=PEDIDOS.filter(function(p){return p.data>=dias(90)}).reduce(function(s,p){return s+p.valor},0);
+  var conc=(t.slice(0,3).reduce(function(s,c){return s+c.fat},0)/total)*100;
+  return {html:'<p>Nos últimos 90 dias, os maiores clientes são estes:</p>'+
+    tabela([{t:'Cliente'},{t:'Unidade'},{t:'Faturamento',num:true},{t:'Pedidos',num:true}],t.map(function(c){return [c.nome,c.unidade,BRL(c.fat),c.ped]}))+
+    '<p>Os três primeiros concentram <strong>'+conc.toFixed(0)+'%</strong> do faturamento. Perder um deles muda o mês inteiro.</p>',
+   oferta:'Quer que eu avise sempre que um desses ficar 15 dias sem comprar?',
+   sim:'<p>Esse é um dos alertas mais pedidos. O agente aprende a frequência normal de cada cliente e avisa quando alguém sai do padrão, antes de o mês fechar com o buraco.</p><p class="ask">Quer ver quais clientes já estariam nesse alerta hoje?</p>'};
+};
+I.queda=function(){
+  var q=M.queda();
+  return {html:'<p>Comparando os últimos 30 dias com os 30 anteriores, estes clientes reduziram compras:</p>'+
+    tabela([{t:'Cliente'},{t:'30d anteriores',num:true},{t:'Últimos 30d',num:true},{t:'Variação',num:true}],
+      q.map(function(c){return [c.nome,BRL(c.antes),BRL(c.agora),'<span class="tag '+(c.varp<-30?'bad':'mid')+'">'+PCT(c.varp)+'</span>']}))+
+    '<p>Queda acima de 30% em cliente recorrente costuma ser concorrente entrando, não sazonalidade.</p>',
+   oferta:'Quer que eu monte a lista de contato para o comercial priorizar esta semana?',
+   sim:'<p>Certo. A lista sairia ordenada por valor em risco, com histórico de compra e data do último pedido, entregue ao gerente comercial no início do dia.</p><p class="ask">Quer ver esse formato de entrega diária?</p>'};
+};
+I.produtos=function(){
+  var t=M.topProdutos(90,6);
+  return {html:'<p>Os itens que mais faturaram nos últimos 90 dias:</p>'+
+    tabela([{t:'SKU'},{t:'Produto'},{t:'Faturamento',num:true},{t:'Unidades',num:true}],t.map(function(p){return [p.sku,p.nome,BRL(p.fat),p.itens]})),
+   oferta:'Quer cruzar com a posição de estoque para ver o que corre risco de faltar?',
+   sim:function(){return I.estoque()}};
+};
+I.unidades=function(){
+  var un=M.unidades(30);
+  return {html:'<p>Desempenho das três unidades nos últimos 30 dias:</p>'+
+    tabela([{t:'Unidade'},{t:'Faturamento',num:true},{t:'Pedidos',num:true},{t:'Ticket médio',num:true},{t:'Atrasos',num:true}],
+      UNIDADES.map(function(u){return [u,BRL(un[u].fat),un[u].ped,BRL(un[u].ped?un[u].fat/un[u].ped:0),un[u].atraso]}))+
+    '<p>A Norte é a única com pedidos travados no período, todos pelo mesmo motivo de estoque.</p>',
+   oferta:'Quer que eu detalhe o que está travado na Norte?',
+   sim:function(){return I.atraso()}};
+};
+
+return {
+ id:'gestao',nome:'Gestão',resumo:'Comercial, estoque e financeiro',
+ titulo:'Pergunte à operação como se fosse a uma pessoa',
+ lede:'Este agente está conectado à base de uma distribuidora fictícia: pedidos, estoque e recebíveis dos últimos 90 dias. Ele consulta os dados na hora, responde com números e sugere o que fazer em seguida. Faça a pergunta que você faria na segunda-feira de manhã.',
+ empresa:'Distribuidora Vale',empresaSub:'Materiais elétricos e hidráulicos · unidades Norte, Centro e Sul',
+ fontes:['Pedidos · ERP','Estoque · ERP','Contas a receber · financeiro','Cadastro de clientes · CRM'],
+ kpis:function(){
+   var mc=M.mes(),at=M.atrasados().length;
+   return [{k:'Faturamento do mês',v:BRL(mc.atual),d:PCT(mc.var)+' vs. mesmo período do mês passado',c:mc.var>1?'up':(mc.var<-1?'down':'flat')},
+     {k:'Ticket médio (30d)',v:BRL(M.ticket()),d:PEDIDOS.filter(function(p){return p.data>=dias(30)}).length+' pedidos',c:'flat'},
+     {k:'Pedidos em atraso',v:at,d:'3 na unidade Norte',c:'down'}];
+ },
+ sugestoes:['Qual foi o motivo do atraso nas entregas da unidade Norte?','Como está o faturamento do mês?','Quem está inadimplente há mais de 30 dias?','O que está faltando no estoque?','Quais clientes compraram menos que no mês passado?','Compare o desempenho das unidades'],
+ abertura:function(){
+   return {html:'<p>Bom dia. Estou conectado aos dados da Distribuidora Vale: pedidos, estoque, contas a receber e clientes dos últimos 90 dias.</p>'+
+     '<p>Antes de você perguntar, dois pontos que já olhei hoje: o faturamento do mês está '+PCT(M.mes().var)+' contra o mesmo período do mês passado, e há '+M.atrasados().length+' pedidos em atraso, sendo 3 pela mesma causa na unidade Norte.</p>',
+    oferta:'Quer começar pelos atrasos?',sim:function(){return I.atraso()}};
+ },
+ intents:[
+  {kw:['atras','atrasad','atrasou','entrega','prazo','pendente','travad','norte'],run:I.atraso},
+  {kw:['faturamento','vendas','vendeu','receita','fatur','mês','mes passado','comparativo','crescimento'],run:I.faturamento},
+  {kw:['inadimpl','receber','recebiv','devendo','calote','cobran','vencid','financeiro','pagamento'],run:I.inad},
+  {kw:['estoque','ruptura','faltando','falta','repor','reposi','comprar','sku'],run:I.estoque},
+  {kw:['cliente','clientes','maiores','ranking','top','curva abc'],run:I.clientes},
+  {kw:['caiu','queda','diminuiu','perdeu','comprando menos','reduziu','sumiu'],run:I.queda},
+  {kw:['produto','produtos','mais vendido','item','itens','mix'],run:I.produtos},
+  {kw:['unidade','unidades','filial','filiais','centro','sul','comparar'],run:I.unidades}
+ ],
+ escopo:'<p>Nesta demonstração eu enxergo quatro bases de uma distribuidora fictícia: pedidos, estoque, contas a receber e clientes dos últimos 90 dias.</p><p>Posso responder sobre faturamento e comparativos, pedidos em atraso e suas causas, posição de estoque e reposição, inadimplência, ranking e queda de clientes, e desempenho por unidade.</p>',
+ sugestaoEscopo:'Quer começar por faturamento ou pelos pedidos em atraso?',
+ papel:'Você é o Agente de Gestão da AM BI, conectado aos dados de uma distribuidora fictícia (pedidos, estoque, contas a receber, clientes).',
+ contexto:function(){
+   var mc=M.mes(),un=M.unidades(30);
+   return {empresa:'Distribuidora Vale (fictícia) — materiais elétricos e hidráulicos, unidades Norte, Centro e Sul',
+     faturamento_mes:{atual:Math.round(mc.atual),mesmo_periodo_mes_anterior:Math.round(mc.anterior),variacao_pct:+mc.var.toFixed(1),dia_do_mes:mc.dia},
+     ticket_medio_30d:Math.round(M.ticket()),
+     pedidos_atrasados:M.atrasados().map(function(p){return {id:p.id,cliente:p.cliente,unidade:p.unidade,sku:p.sku,produto:p.produto,motivo:p.motivo,valor:Math.round(p.valor),data:DATA(p.data)}}),
+     estoque_abaixo_minimo:M.ruptura().map(function(p){return {sku:p.sku,produto:p.nome,estoque:p.estoque,minimo:p.minimo}}),
+     unidades_30d:UNIDADES.map(function(u){return {unidade:u,faturamento:Math.round(un[u].fat),pedidos:un[u].ped,atrasos:un[u].atraso}}),
+     top_clientes_90d:M.topClientes(90,6).map(function(c){return {cliente:c.nome,faturamento:Math.round(c.fat),pedidos:c.ped}}),
+     clientes_em_queda:M.queda().map(function(c){return {cliente:c.nome,antes_30d:Math.round(c.antes),ultimos_30d:Math.round(c.agora),variacao_pct:+c.varp.toFixed(1)}}),
+     top_produtos_90d:M.topProdutos(90,6).map(function(p){return {sku:p.sku,produto:p.nome,faturamento:Math.round(p.fat),unidades:p.itens}}),
+     inadimplencia_acima_30d:M.inad(30).slice(0,12).map(function(r){return {cliente:r.cliente,valor:Math.round(r.valor),dias_atraso:r.atraso}})};
+ }};
+})();
+
+/* =========================================================
+   AGENTE 2 — CLÍNICA
+   ========================================================= */
+NICHOS.clinica=(function(){
+var R=rng(77310244);
+function pick(a){return a[Math.floor(R()*a.length)]}
+function between(a,b){return a+R()*(b-a)}
+
+var PROFS=[
+ {nome:'Dra. Helena Prado',esp:'Ortopedia'},{nome:'Dr. Márcio Alves',esp:'Fisioterapia'},
+ {nome:'Dra. Renata Lima',esp:'Fisioterapia'},{nome:'Dra. Carla Bastos',esp:'Nutrição'},
+ {nome:'Dr. Paulo Teixeira',esp:'Psicologia'}
+];
+var PROCS=[
+ {nome:'Consulta ortopédica',valor:280,esp:'Ortopedia'},
+ {nome:'Infiltração articular',valor:640,esp:'Ortopedia'},
+ {nome:'Sessão de fisioterapia motora',valor:120,esp:'Fisioterapia'},
+ {nome:'Avaliação postural',valor:180,esp:'Fisioterapia'},
+ {nome:'Consulta nutricional',valor:220,esp:'Nutrição'},
+ {nome:'Sessão de psicologia',valor:200,esp:'Psicologia'}
+];
+var CONVENIOS=[
+ {nome:'Saúde Vale',peso:.34,glosa:.15},{nome:'Unimed Leste',peso:.24,glosa:.04},
+ {nome:'Metalplan Saúde',peso:.18,glosa:.08},{nome:'Particular',peso:.24,glosa:0}
+];
+function sorteiaConvenio(){var r=R(),acc=0;for(var i=0;i<CONVENIOS.length;i++){acc+=CONVENIOS[i].peso;if(r<=acc)return CONVENIOS[i]}return CONVENIOS[3]}
+var HORAS=['08:00','09:00','10:00','11:00','13:00','14:00','15:00','16:00','17:00','18:00'];
+var OCIOSO={'11:00':.42,'17:00':.38,'18:00':.5,'13:00':.72};
+
+var AGENDA=[],pid=1000;
+for(var d=89;d>=-6;d--){
+  var data=dias(d),dw=data.getDay();
+  if(dw===0)continue;
+  HORAS.forEach(function(h){
+    if(dw===6&&h>'12:00')return;
+    PROFS.forEach(function(pr){
+      var chance=OCIOSO[h]!==undefined?OCIOSO[h]:0.88;
+      if(R()>chance)return;
+      var proc=pick(PROCS.filter(function(x){return x.esp===pr.esp}));
+      var conv=sorteiaConvenio();
+      var status;
+      if(d<0)status='Agendado';
+      else{var r=R();status=r<0.115?'Falta':(r<0.19?'Cancelado':'Atendido')}
+      var glosado=false;
+      if(status==='Atendido'&&conv.nome!=='Particular'){
+        var g=conv.glosa;
+        if(conv.nome==='Saúde Vale'&&proc.nome==='Sessão de fisioterapia motora')g=0.34;
+        glosado=R()<g;
+      }
+      AGENDA.push({data:data,hora:h,prof:pr.nome,esp:pr.esp,proc:proc.nome,valor:proc.valor,
+        conv:conv.nome,status:status,glosado:glosado,paciente:'Paciente '+(pid++)});
+    });
+  });
+}
+
+var M={
+  atendidos:function(nd){return AGENDA.filter(function(a){return a.status==='Atendido'&&a.data>=dias(nd)&&a.data<=HOJE})},
+  fatMes:function(){
+    var ini=new Date(HOJE.getFullYear(),HOJE.getMonth(),1);
+    var l=AGENDA.filter(function(a){return a.status==='Atendido'&&a.data>=ini&&a.data<=HOJE});
+    var bruto=l.reduce(function(s,a){return s+a.valor},0);
+    var glosa=l.filter(function(a){return a.glosado}).reduce(function(s,a){return s+a.valor},0);
+    return {bruto:bruto,glosa:glosa,liquido:bruto-glosa,n:l.length};
+  },
+  faltas:function(nd){
+    var l=AGENDA.filter(function(a){return a.data>=dias(nd)&&a.data<=HOJE&&(a.status==='Falta'||a.status==='Cancelado'||a.status==='Atendido')});
+    var faltas=l.filter(function(a){return a.status==='Falta'});
+    return {n:faltas.length,valor:faltas.reduce(function(s,a){return s+a.valor},0),
+      taxa:l.length?(faltas.length/l.length)*100:0,total:l.length,lista:faltas};
+  },
+  faltaPorProf:function(nd){
+    var m={};
+    AGENDA.filter(function(a){return a.data>=dias(nd)&&a.data<=HOJE&&a.status!=='Agendado'}).forEach(function(a){
+      m[a.prof]=m[a.prof]||{nome:a.prof,esp:a.esp,at:0,falta:0,fat:0};
+      if(a.status==='Atendido'){m[a.prof].at++;m[a.prof].fat+=a.valor}
+      if(a.status==='Falta')m[a.prof].falta++;
+    });
+    return Object.keys(m).map(function(k){var x=m[k];x.taxa=(x.falta/(x.at+x.falta))*100;return x}).sort(function(a,b){return b.fat-a.fat});
+  },
+  glosas:function(nd){
+    var m={};
+    M.atendidos(nd).forEach(function(a){
+      if(a.conv==='Particular')return;
+      m[a.conv]=m[a.conv]||{conv:a.conv,fat:0,glosa:0,n:0,ng:0};
+      m[a.conv].fat+=a.valor;m[a.conv].n++;
+      if(a.glosado){m[a.conv].glosa+=a.valor;m[a.conv].ng++}
+    });
+    return Object.keys(m).map(function(k){var x=m[k];x.taxa=(x.glosa/x.fat)*100;return x}).sort(function(a,b){return b.glosa-a.glosa});
+  },
+  glosaPorProc:function(conv,nd){
+    var m={};
+    M.atendidos(nd).filter(function(a){return a.conv===conv&&a.glosado}).forEach(function(a){
+      m[a.proc]=m[a.proc]||{proc:a.proc,v:0,n:0};m[a.proc].v+=a.valor;m[a.proc].n++});
+    return Object.keys(m).map(function(k){return m[k]}).sort(function(a,b){return b.v-a.v});
+  },
+  ocupacao:function(nd){
+    var cap={},uso={};
+    HORAS.forEach(function(h){cap[h]=0;uso[h]=0});
+    for(var d=nd;d>=0;d--){
+      var dt=dias(d),dw=dt.getDay();if(dw===0)continue;
+      HORAS.forEach(function(h){if(dw===6&&h>'12:00')return;cap[h]+=PROFS.length});
+    }
+    AGENDA.filter(function(a){return a.data>=dias(nd)&&a.data<=HOJE&&a.status!=='Cancelado'}).forEach(function(a){uso[a.hora]++});
+    return HORAS.map(function(h){return {hora:h,cap:cap[h],uso:uso[h],taxa:cap[h]?(uso[h]/cap[h])*100:0}});
+  },
+  mix:function(nd){
+    var l=M.atendidos(nd),part=l.filter(function(a){return a.conv==='Particular'});
+    var fatT=l.reduce(function(s,a){return s+a.valor},0),fatP=part.reduce(function(s,a){return s+a.valor},0);
+    return {total:fatT,particular:fatP,convenio:fatT-fatP,pctP:fatT?(fatP/fatT)*100:0,
+      ticketP:part.length?fatP/part.length:0,ticketC:(l.length-part.length)?(fatT-fatP)/(l.length-part.length):0};
+  },
+  procs:function(nd){
+    var m={};
+    M.atendidos(nd).forEach(function(a){m[a.proc]=m[a.proc]||{proc:a.proc,n:0,fat:0};m[a.proc].n++;m[a.proc].fat+=a.valor});
+    return Object.keys(m).map(function(k){return m[k]}).sort(function(a,b){return b.fat-a.fat});
+  }
+};
+
+var I={};
+I.faltas=function(){
+  var s=M.faltas(7),m=M.faltas(30);
+  return {html:'<p>Na última semana foram <strong>'+s.n+' faltas</strong>, o equivalente a '+BRL(s.valor)+' que não entraram. A taxa de falta ficou em '+P1(s.taxa)+' contra '+P1(m.taxa)+' na média dos últimos 30 dias.</p>'+
+    tabela([{t:'Profissional'},{t:'Atendidos',num:true},{t:'Faltas',num:true},{t:'Taxa',num:true}],
+      M.faltaPorProf(30).map(function(p){return [p.nome,p.at,p.falta,'<span class="tag '+(p.taxa>13?'bad':'ok')+'">'+P1(p.taxa)+'</span>']}))+
+    '<p>Em 30 dias, a falta custou '+BRL(m.valor)+'. É o maior vazamento de receita da clínica hoje, e é o mais barato de atacar.</p>',
+   oferta:'Quer que eu dispare confirmação automática por WhatsApp 24h antes de cada consulta?',
+   sim:'<p>Esse é o caso de uso com retorno mais rápido. O agente lê a agenda do dia seguinte, manda a confirmação, lê a resposta do paciente e devolve o horário para a lista de encaixe quando alguém desmarca. A recepção só entra quando alguém não responde.</p><p class="ask">Quer ver quais horários da agenda estão ociosos para receber esses encaixes?</p>'};
+};
+I.glosas=function(){
+  var g=M.glosas(90),pior=g[0],porProc=M.glosaPorProc(pior.conv,90);
+  return {html:'<p>Nos últimos 90 dias foram <strong>'+BRL(g.reduce(function(s,x){return s+x.glosa},0))+'</strong> em glosas. A concentração é clara:</p>'+
+    tabela([{t:'Convênio'},{t:'Faturado',num:true},{t:'Glosado',num:true},{t:'Taxa',num:true}],
+      g.map(function(x){return [x.conv,BRL(x.fat),BRL(x.glosa),'<span class="tag '+(x.taxa>10?'bad':'ok')+'">'+P1(x.taxa)+'</span>']}))+
+    '<p>O '+pior.conv+' responde pela maior parte, e dentro dele o problema é um procedimento só: '+porProc[0].proc+', com '+porProc[0].n+' glosas e '+BRL(porProc[0].v)+' retidos. Isso quase sempre é erro de código ou de documentação no envio, não recusa clínica.</p>',
+   oferta:'Quer que eu monte a lista de glosas recorrentes para recurso, separada por motivo?',
+   sim:'<p>A lista sairia agrupada por procedimento e por convênio, com o valor recuperável em cada grupo, priorizando o que ainda está dentro do prazo de recurso. Em uma implantação real o agente ainda avisa quando um novo lote de glosas entra, em vez de a clínica descobrir no fechamento do mês.</p><p class="ask">Quer ver o impacto disso no faturamento líquido?</p>'};
+};
+I.agenda=function(){
+  var oc=M.ocupacao(30);
+  var ruins=oc.filter(function(h){return h.taxa<60}).sort(function(a,b){return a.taxa-b.taxa});
+  var media=oc.reduce(function(s,h){return s+h.taxa},0)/oc.length;
+  var perdaMes=ruins.reduce(function(s,h){return s+(h.cap-h.uso)*180},0);
+  return {html:'<p>A ocupação média da agenda nos últimos 30 dias está em <strong>'+P1(media)+'</strong>. A distribuição por horário mostra onde estão os buracos:</p>'+
+    tabela([{t:'Horário'},{t:'Vagas',num:true},{t:'Ocupadas',num:true},{t:'Ocupação',num:true}],
+      oc.map(function(h){return [h.hora,h.cap,h.uso,'<span class="tag '+(h.taxa<60?'bad':(h.taxa>85?'ok':'mid'))+'">'+P1(h.taxa)+'</span>']}))+
+    '<p>Os horários fracos somam cerca de '+BRL(perdaMes)+' de capacidade não usada por mês, considerando o ticket médio. Não é falta de demanda: é distribuição.</p>',
+   oferta:'Quer que eu use esses horários como lista de encaixe para quem desmarca?',
+   sim:'<p>Funciona assim: quando um paciente cancela, o agente identifica quem está na fila de espera com perfil compatível e oferece o horário automaticamente pelo WhatsApp, por ordem de prioridade. O horário vago vira receita em vez de virar buraco.</p><p class="ask">Quer ver quanto as faltas estão custando hoje?</p>'};
+};
+I.faturamento=function(){
+  var f=M.fatMes(),mix=M.mix(30);
+  return {html:'<p>No mês até hoje, a clínica faturou <strong>'+BRL(f.bruto)+'</strong> em '+f.n+' atendimentos. Descontando '+BRL(f.glosa)+' em glosas, o líquido é '+BRL(f.liquido)+'.</p>'+
+    tabela([{t:'Origem'},{t:'Faturamento 30d',num:true},{t:'Ticket médio',num:true}],
+      [['Particular',BRL(mix.particular),BRL(mix.ticketP)],['Convênios',BRL(mix.convenio),BRL(mix.ticketC)]])+
+    '<p>O particular representa '+P1(mix.pctP)+' do faturamento, com ticket médio '+BRL(mix.ticketP-mix.ticketC)+' maior que o de convênio e sem risco de glosa.</p>',
+   oferta:'Quer que eu mostre onde as glosas estão comendo esse faturamento?',
+   sim:function(){return I.glosas()}};
+};
+I.equipe=function(){
+  var p=M.faltaPorProf(30);
+  return {html:'<p>Produção por profissional nos últimos 30 dias:</p>'+
+    tabela([{t:'Profissional'},{t:'Especialidade'},{t:'Atendimentos',num:true},{t:'Faturamento',num:true},{t:'Taxa de falta',num:true}],
+      p.map(function(x){return [x.nome,x.esp,x.at,BRL(x.fat),P1(x.taxa)]}))+
+    '<p>Faturamento alto com taxa de falta alta é sinal de agenda mal distribuída, não de baixa procura.</p>',
+   oferta:'Quer que eu compare isso com a ocupação de cada horário?',
+   sim:function(){return I.agenda()}};
+};
+I.procs=function(){
+  var p=M.procs(90);
+  return {html:'<p>Procedimentos que mais faturaram nos últimos 90 dias:</p>'+
+    tabela([{t:'Procedimento'},{t:'Realizados',num:true},{t:'Faturamento',num:true}],
+      p.map(function(x){return [x.proc,x.n,BRL(x.fat)]})),
+   oferta:'Quer ver quais desses procedimentos concentram glosa?',
+   sim:function(){return I.glosas()}};
+};
+I.mix=function(){
+  var m=M.mix(90);
+  return {html:'<p>Nos últimos 90 dias, <strong>'+P1(m.pctP)+'</strong> do faturamento veio de particular e o restante de convênios.</p>'+
+    tabela([{t:'Origem'},{t:'Faturamento 90d',num:true},{t:'Ticket médio',num:true}],
+      [['Particular',BRL(m.particular),BRL(m.ticketP)],['Convênios',BRL(m.convenio),BRL(m.ticketC)]])+
+    '<p>Cada ponto percentual migrado de convênio para particular vale mais que um novo paciente de convênio, porque entra sem glosa e com ticket maior.</p>',
+   oferta:'Quer que eu acompanhe esse mix mês a mês e avise quando ele piorar?',
+   sim:'<p>O agente passa a enviar o mix no primeiro dia útil de cada mês, junto com a variação e o efeito no líquido. Quando a dependência de um convênio ultrapassar o limite que a clínica definir, ele avisa antes, não depois.</p><p class="ask">Quer ver o faturamento do mês atual?</p>'};
+};
+
+return {
+ id:'clinica',nome:'Clínica',resumo:'Agenda, faltas, convênios e glosas',
+ titulo:'Pergunte à clínica o que ninguém tem tempo de calcular',
+ lede:'Este agente está conectado à base de uma clínica multiprofissional fictícia: agenda, atendimentos, convênios e glosas dos últimos 90 dias. Ele transforma falta, buraco de agenda e glosa em dinheiro, que é a linguagem de quem administra a clínica.',
+ empresa:'Clínica Vale Saúde',empresaSub:'Ortopedia, fisioterapia, nutrição e psicologia · 5 profissionais',
+ fontes:['Agenda · sistema de gestão','Atendimentos e faturamento','Convênios e glosas','Cadastro de pacientes · pseudonimizado'],
+ kpis:function(){
+   var f=M.fatMes(),fa=M.faltas(7),oc=M.ocupacao(30);
+   var media=oc.reduce(function(s,h){return s+h.taxa},0)/oc.length;
+   var fracos=oc.filter(function(h){return h.taxa<60}).length;
+   return [{k:'Faturamento líquido do mês',v:BRL(f.liquido),d:BRL(f.glosa)+' retidos em glosa',c:'down'},
+     {k:'Ocupação da agenda (30d)',v:P1(media),d:fracos+' horários abaixo de 60%',c:'flat'},
+     {k:'Faltas na semana',v:fa.n,d:BRL(fa.valor)+' não faturados',c:'down'}];
+ },
+ sugestoes:['Quantos pacientes faltaram essa semana e quanto isso custou?','Qual convênio mais glosa e em quais procedimentos?','Quais horários da agenda estão mais ociosos?','Como está o faturamento do mês?','Como está a produção de cada profissional?','Quanto do faturamento vem de particular?'],
+ abertura:function(){
+   var fa=M.faltas(7),g=M.glosas(90);
+   return {html:'<p>Bom dia. Estou conectado à base da Clínica Vale Saúde: agenda, atendimentos, convênios e glosas dos últimos 90 dias.</p>'+
+     '<p>Dois pontos que já olhei hoje: foram '+fa.n+' faltas na última semana, o que representa '+BRL(fa.valor)+' que não entraram, e o convênio '+g[0].conv+' está com taxa de glosa de '+P1(g[0].taxa)+', bem acima dos demais.</p>'+
+     '<p>Uma observação: aqui eu trabalho com dados de agenda e faturamento. Nome de paciente não aparece nas respostas, por padrão.</p>',
+    oferta:'Quer começar pelas faltas ou pelas glosas?',sim:function(){return I.faltas()}};
+ },
+ intents:[
+  {kw:['falta','faltou','faltaram','no-show','no show','ausênc','ausenc','desmarc','não veio','nao veio'],run:I.faltas},
+  {kw:['glosa','glosad','convenio','convênio','plano','negad','recurso','unimed','saúde vale','saude vale'],run:I.glosas},
+  {kw:['agenda','ociosa','ocios','horário','horario','vago','buraco','ocupação','ocupacao','encaixe','fila'],run:I.agenda},
+  {kw:['faturamento','receita','fatur','mês','mes','líquido','liquido','caixa'],run:I.faturamento},
+  {kw:['profissional','profissionais','médico','medico','terapeuta','equipe','produção','producao','produtividade'],run:I.equipe},
+  {kw:['procedimento','procedimentos','mais realizado','consulta','sessão','sessao','exame'],run:I.procs},
+  {kw:['particular','mix','privado','fonte pagadora'],run:I.mix}
+ ],
+ escopo:'<p>Nesta demonstração eu enxergo quatro bases de uma clínica fictícia: agenda, atendimentos, convênios com glosas e cadastro pseudonimizado de pacientes, dos últimos 90 dias.</p><p>Posso responder sobre faltas e o custo delas, ocupação e horários ociosos, glosa por convênio e por procedimento, faturamento bruto e líquido, produção por profissional e mix particular versus convênio.</p>',
+ sugestaoEscopo:'Quer tentar uma sobre faltas, glosas ou ocupação da agenda?',
+ papel:'Você é o Agente de Clínica da AM BI, conectado aos dados de uma clínica multiprofissional fictícia (agenda, atendimentos, convênios, glosas). Nunca cite nome de paciente e nunca dê orientação clínica ou diagnóstica: sua alçada é gestão, agenda e faturamento.',
+ contexto:function(){
+   var f=M.fatMes(),fa7=M.faltas(7),fa30=M.faltas(30),g=M.glosas(90);
+   return {empresa:'Clínica Vale Saúde (fictícia) — ortopedia, fisioterapia, nutrição e psicologia, 5 profissionais',
+     faturamento_mes:{bruto:Math.round(f.bruto),glosado:Math.round(f.glosa),liquido:Math.round(f.liquido),atendimentos:f.n},
+     faltas_7d:{quantidade:fa7.n,valor_perdido:Math.round(fa7.valor),taxa_pct:+fa7.taxa.toFixed(1)},
+     faltas_30d:{quantidade:fa30.n,valor_perdido:Math.round(fa30.valor),taxa_pct:+fa30.taxa.toFixed(1)},
+     glosas_90d:g.map(function(x){return {convenio:x.conv,faturado:Math.round(x.fat),glosado:Math.round(x.glosa),taxa_pct:+x.taxa.toFixed(1)}}),
+     glosa_por_procedimento_pior_convenio:M.glosaPorProc(g[0].conv,90).map(function(x){return {convenio:g[0].conv,procedimento:x.proc,glosas:x.n,valor:Math.round(x.v)}}),
+     ocupacao_por_horario_30d:M.ocupacao(30).map(function(h){return {hora:h.hora,vagas:h.cap,ocupadas:h.uso,ocupacao_pct:+h.taxa.toFixed(1)}}),
+     producao_por_profissional_30d:M.faltaPorProf(30).map(function(p){return {profissional:p.nome,especialidade:p.esp,atendimentos:p.at,faltas:p.falta,faturamento:Math.round(p.fat),taxa_falta_pct:+p.taxa.toFixed(1)}}),
+     procedimentos_90d:M.procs(90).map(function(p){return {procedimento:p.proc,realizados:p.n,faturamento:Math.round(p.fat)}}),
+     mix_90d:(function(){var m=M.mix(90);return {particular:Math.round(m.particular),convenios:Math.round(m.convenio),particular_pct:+m.pctP.toFixed(1),ticket_particular:Math.round(m.ticketP),ticket_convenio:Math.round(m.ticketC)}})()};
+ }};
+})();
+
+/* =========================================================
+   AGENTE 3 — MARKETING
+   ========================================================= */
+NICHOS.marketing=(function(){
+var R=rng(51902377);
+function between(a,b){return a+R()*(b-a)}
+
+var CAMPANHAS=[
+ {canal:'Meta Ads',nome:'Institucional — reconhecimento',cpc:1.35,taxaLead:.0042,qual:.15,fech:.04,ticket:2400,verba:78},
+ {canal:'Meta Ads',nome:'Promoção sofás — conversão',cpc:1.15,taxaLead:.013,qual:.38,fech:.14,ticket:3100,verba:96},
+ {canal:'Meta Ads',nome:'Remarketing — carrinho',cpc:0.92,taxaLead:.018,qual:.52,fech:.22,ticket:2750,verba:42},
+ {canal:'Google Ads',nome:'Search — marca',cpc:0.78,taxaLead:.022,qual:.55,fech:.17,ticket:2900,verba:38},
+ {canal:'Google Ads',nome:'Search — genéricas',cpc:2.45,taxaLead:.014,qual:.32,fech:.11,ticket:3300,verba:110},
+ {canal:'Google Ads',nome:'Performance Max',cpc:1.62,taxaLead:.013,qual:.30,fech:.10,ticket:2600,verba:88}
+];
+var STATUS=['Novo','Em contato','Qualificado','Ganho','Perdido'];
+var DIARIO=[],LEADS=[],lid=1;
+for(var d=89;d>=0;d--){
+  var data=dias(d);
+  CAMPANHAS.forEach(function(c){
+    var invest=Math.round(c.verba*between(.82,1.18)*100)/100;
+    var inflacao=(d<30)?1.19:1;   /* leilão mais caro nos últimos 30 dias */
+    var cliques=Math.round(invest/(c.cpc*inflacao*between(.9,1.1)));
+    var imp=Math.round(cliques*between(28,62));
+    var nLeads=0;
+    for(var k=0;k<cliques;k++){if(R()<c.taxaLead)nLeads++}
+    var vendas=0,receita=0;
+    for(var j=0;j<nLeads;j++){
+      var qualificado=R()<c.qual;
+      var ganho=qualificado&&R()<(c.fech/c.qual);
+      var valor=ganho?Math.round(c.ticket*between(.7,1.4)):0;
+      if(ganho){vendas++;receita+=valor}
+      var st;
+      if(ganho)st='Ganho';
+      else if(qualificado)st='Qualificado';
+      else st=R()<.55?'Perdido':(d<=2?'Novo':'Em contato');
+      var contatado=(st==='Novo')?false:true;
+      LEADS.push({id:'L'+(lid++),data:data,canal:c.canal,campanha:c.nome,status:st,contatado:contatado,
+        potencial:Math.round(c.ticket*between(.7,1.4)),valor:valor});
+    }
+    DIARIO.push({data:data,canal:c.canal,campanha:c.nome,invest:invest,imp:imp,cliques:cliques,leads:nLeads,vendas:vendas,receita:receita});
+  });
+}
+/* fato narrativo: leads recentes sem nenhum contato registrado */
+LEADS.forEach(function(l){if(l.status==='Novo'){l.status='Em contato';l.contatado=true}});
+LEADS.filter(function(l){return l.data>=dias(4)&&l.status!=='Ganho'})
+  .slice(0,12).forEach(function(l){l.contatado=false;l.status='Novo'});
+
+var M={
+  campanhas:function(nd){
+    var m={};
+    DIARIO.filter(function(x){return x.data>=dias(nd)}).forEach(function(x){
+      m[x.campanha]=m[x.campanha]||{campanha:x.campanha,canal:x.canal,invest:0,imp:0,cliques:0,leads:0,vendas:0,receita:0};
+      var o=m[x.campanha];o.invest+=x.invest;o.imp+=x.imp;o.cliques+=x.cliques;o.leads+=x.leads;o.vendas+=x.vendas;o.receita+=x.receita;
+    });
+    return Object.keys(m).map(function(k){var o=m[k];o.cpl=o.leads?o.invest/o.leads:0;o.roas=o.invest?o.receita/o.invest:0;o.conv=o.leads?(o.vendas/o.leads)*100:0;return o})
+      .sort(function(a,b){return b.invest-a.invest});
+  },
+  canais:function(nd){
+    var m={};
+    M.campanhas(nd).forEach(function(c){
+      m[c.canal]=m[c.canal]||{canal:c.canal,invest:0,leads:0,vendas:0,receita:0};
+      var o=m[c.canal];o.invest+=c.invest;o.leads+=c.leads;o.vendas+=c.vendas;o.receita+=c.receita});
+    return Object.keys(m).map(function(k){var o=m[k];o.cpl=o.leads?o.invest/o.leads:0;o.roas=o.invest?o.receita/o.invest:0;o.cac=o.vendas?o.invest/o.vendas:0;return o})
+      .sort(function(a,b){return b.receita-a.receita});
+  },
+  totais:function(nd){
+    var c=M.campanhas(nd);
+    var t={invest:0,leads:0,vendas:0,receita:0};
+    c.forEach(function(x){t.invest+=x.invest;t.leads+=x.leads;t.vendas+=x.vendas;t.receita+=x.receita});
+    t.cpl=t.leads?t.invest/t.leads:0;t.roas=t.invest?t.receita/t.invest:0;t.cac=t.vendas?t.invest/t.vendas:0;
+    t.conv=t.leads?(t.vendas/t.leads)*100:0;
+    return t;
+  },
+  funil:function(nd){
+    var l=LEADS.filter(function(x){return x.data>=dias(nd)});
+    var q=l.filter(function(x){return x.status==='Qualificado'||x.status==='Ganho'});
+    var g=l.filter(function(x){return x.status==='Ganho'});
+    return {leads:l.length,qualificados:q.length,ganhos:g.length,
+      txQual:l.length?(q.length/l.length)*100:0,txGanho:q.length?(g.length/q.length)*100:0,
+      receita:g.reduce(function(s,x){return s+x.valor},0)};
+  },
+  parados:function(){
+    var l=LEADS.filter(function(x){return !x.contatado&&x.data>=dias(7)});
+    return {n:l.length,potencial:l.reduce(function(s,x){return s+x.potencial},0),lista:l,
+      porCampanha:(function(){var m={};l.forEach(function(x){m[x.campanha]=(m[x.campanha]||0)+1});return m})()};
+  },
+  cplMes:function(){
+    var a=M.totais(30),b=(function(){
+      var c={},t={invest:0,leads:0};
+      DIARIO.filter(function(x){return x.data>=dias(60)&&x.data<dias(30)}).forEach(function(x){t.invest+=x.invest;t.leads+=x.leads});
+      return {cpl:t.leads?t.invest/t.leads:0,invest:t.invest,leads:t.leads};
+    })();
+    return {atual:a.cpl,anterior:b.cpl,var:b.cpl?((a.cpl-b.cpl)/b.cpl)*100:0};
+  }
+};
+
+var I={};
+I.cpl=function(){
+  var c=M.campanhas(30),t=M.totais(30),v=M.cplMes();
+  var pior=c.slice().sort(function(a,b){return b.cpl-a.cpl})[0];
+  return {html:'<p>Nos últimos 30 dias foram <strong>'+BRL(t.invest)+'</strong> investidos, gerando '+t.leads+' leads. O custo por lead médio está em '+BRL(t.cpl)+', '+PCT(v.var)+' contra os 30 dias anteriores.</p>'+
+    tabela([{t:'Campanha'},{t:'Investido',num:true},{t:'Leads',num:true},{t:'CPL',num:true}],
+      c.map(function(x){return [x.campanha,BRL(x.invest),x.leads,'<span class="tag '+(x.cpl>t.cpl*1.8?'bad':(x.cpl<t.cpl*0.7?'ok':'mid'))+'">'+BRL(x.cpl)+'</span>']}))+
+    '<p>A "'+pior.campanha+'" está com CPL de '+BRL(pior.cpl)+', muito acima da média, e consumiu '+BRL(pior.invest)+' no período.</p>',
+   oferta:'Quer que eu compare o CPL com o que cada campanha realmente vendeu?',
+   sim:function(){return I.roi()}};
+};
+I.roi=function(){
+  var c=M.campanhas(30),t=M.totais(30);
+  var ruim=c.slice().sort(function(a,b){return a.roas-b.roas})[0];
+  var bom=c.slice().sort(function(a,b){return b.roas-a.roas})[0];
+  return {html:'<p>Com '+BRL(t.invest)+' investidos nos últimos 30 dias, a receita atribuída foi de <strong>'+BRL(t.receita)+'</strong>. ROAS geral de '+t.roas.toFixed(1).replace('.',',')+'x e CAC de '+BRL(t.cac)+'.</p>'+
+    tabela([{t:'Campanha'},{t:'Investido',num:true},{t:'Receita',num:true},{t:'ROAS',num:true}],
+      c.sort(function(a,b){return b.roas-a.roas}).map(function(x){return [x.campanha,BRL(x.invest),BRL(x.receita),'<span class="tag '+(x.roas<1?'bad':(x.roas>4?'ok':'mid'))+'">'+x.roas.toFixed(1).replace('.',',')+'x</span>']}))+
+    '<p>A "'+bom.campanha+'" devolve '+bom.roas.toFixed(1).replace('.',',')+'x e está com a menor verba. A "'+ruim.campanha+'" devolve '+ruim.roas.toFixed(1).replace('.',',')+'x consumindo '+BRL(ruim.invest)+'. Há dinheiro no lugar errado.</p>',
+   oferta:'Quer que eu simule o remanejamento da verba entre elas?',
+   sim:function(){
+     var c2=M.campanhas(30),bom2=c2.slice().sort(function(a,b){return b.roas-a.roas})[0],ruim2=c2.slice().sort(function(a,b){return a.roas-b.roas})[0];
+     var mover=ruim2.invest*0.6;
+     return {html:'<p>Movendo 60% da verba da "'+ruim2.campanha+'" ('+BRL(mover)+') para a "'+bom2.campanha+'", e mantendo o ROAS histórico de cada uma, a receita projetada do período subiria cerca de '+BRL(mover*(bom2.roas-ruim2.roas))+'.</p>'+
+       '<p>É uma projeção linear, então serve como direção, não como promessa: campanha de remarketing satura conforme a audiência se esgota. O agente acompanharia o CPL semana a semana para saber onde está esse limite.</p>',
+      oferta:'Quer que eu avise sempre que o CPL de uma campanha subir acima do limite?'}}};
+};
+I.funil=function(){
+  var f=M.funil(30),t=M.totais(30);
+  return {html:'<p>Nos últimos 30 dias entraram <strong>'+f.leads+' leads</strong>. Destes, '+f.qualificados+' foram qualificados ('+P1(f.txQual)+') e '+f.ganhos+' viraram venda ('+P1(f.txGanho)+' dos qualificados).</p>'+
+    tabela([{t:'Etapa'},{t:'Quantidade',num:true},{t:'Conversão',num:true}],
+      [['Leads recebidos',f.leads,'—'],['Qualificados',f.qualificados,P1(f.txQual)],['Vendas fechadas',f.ganhos,P1(f.txGanho)]])+
+    '<p>A perda maior está na primeira etapa: '+(f.leads-f.qualificados)+' leads não avançaram. Quando isso acontece com CPL na média, o problema raramente é a campanha, é o atendimento.</p>',
+   oferta:'Quer que eu verifique quantos leads sequer foram contatados?',
+   sim:function(){return I.parados()}};
+};
+I.parados=function(){
+  var p=M.parados();
+  var rows=Object.keys(p.porCampanha).map(function(k){return [k,p.porCampanha[k]]}).sort(function(a,b){return b[1]-a[1]});
+  return {html:'<p>Há <strong>'+p.n+' leads sem nenhum contato</strong> registrado, todos dos últimos 7 dias, somando '+BRL(p.potencial)+' em potencial de venda.</p>'+
+    tabela([{t:'Campanha de origem'},{t:'Leads sem contato',num:true}],rows)+
+    '<p>Esse é o vazamento mais caro do funil, porque o lead já foi pago. A conversão cai de forma acentuada quando o primeiro contato passa de algumas horas.</p>',
+   oferta:'Quer que eu avise o time comercial sempre que um lead passar de 2 horas sem contato?',
+   sim:'<p>Esse costuma ser o primeiro automatismo a entrar. O agente monitora a entrada de leads, cobra o responsável no canal que o time já usa e escala para o gestor quando o prazo estoura. Nada de planilha de controle paralela.</p><p class="ask">Quer ver como está a conversão do funil hoje?</p>'};
+};
+I.canais=function(){
+  var c=M.canais(30);
+  return {html:'<p>Comparativo por canal nos últimos 30 dias:</p>'+
+    tabela([{t:'Canal'},{t:'Investido',num:true},{t:'Leads',num:true},{t:'CPL',num:true},{t:'Receita',num:true},{t:'ROAS',num:true}],
+      c.map(function(x){return [x.canal,BRL(x.invest),x.leads,BRL(x.cpl),BRL(x.receita),x.roas.toFixed(1).replace('.',',')+'x']}))+
+    '<p>Olhar canal isolado engana: dentro do mesmo canal há campanha devolvendo acima de 5x e campanha devolvendo abaixo de 1x. A decisão de verba é por campanha, não por plataforma.</p>',
+   oferta:'Quer ver a quebra por campanha?',
+   sim:function(){return I.roi()}};
+};
+I.campanhas=function(){
+  var c=M.campanhas(30);
+  return {html:'<p>Todas as campanhas ativas nos últimos 30 dias:</p>'+
+    tabela([{t:'Campanha'},{t:'Canal'},{t:'Investido',num:true},{t:'Leads',num:true},{t:'Vendas',num:true},{t:'ROAS',num:true}],
+      c.map(function(x){return [x.campanha,x.canal,BRL(x.invest),x.leads,x.vendas,x.roas.toFixed(1).replace('.',',')+'x']})),
+   oferta:'Quer que eu aponte qual pausar primeiro?',
+   sim:function(){return I.roi()}};
+};
+
+return {
+ id:'marketing',nome:'Marketing',resumo:'Campanhas, leads e retorno de verba',
+ titulo:'Pergunte ao marketing para onde o dinheiro foi',
+ lede:'Este agente está conectado à base de uma empresa fictícia que anuncia em Meta e Google: campanhas, leads e vendas dos últimos 90 dias. Ele liga o que foi investido ao que foi vendido, que é exatamente o pedaço que costuma ficar solto entre a agência e o comercial.',
+ empresa:'Vale Móveis',empresaSub:'Varejo com loja física e vendas online · Meta Ads e Google Ads',
+ fontes:['Meta Ads · campanhas','Google Ads · campanhas','Leads · CRM','Vendas · ERP'],
+ kpis:function(){
+   var t=M.totais(30),v=M.cplMes(),p=M.parados();
+   return [{k:'Investimento (30d)',v:BRL(t.invest),d:'ROAS de '+t.roas.toFixed(1).replace('.',',')+'x',c:t.roas>=3?'up':'flat'},
+     {k:'Custo por lead',v:BRL(t.cpl),d:PCT(v.var)+' vs. 30 dias anteriores',c:v.var>5?'down':(v.var<-5?'up':'flat')},
+     {k:'Leads sem contato',v:p.n,d:BRL(p.potencial)+' em potencial parado',c:'down'}];
+ },
+ sugestoes:['Qual campanha está com o custo por lead mais alto?','Quanto cada campanha realmente vendeu?','Tem lead sem ninguém ter contatado?','Como está a conversão do funil?','Compare Meta Ads e Google Ads','Onde devo remanejar a verba?'],
+ abertura:function(){
+   var t=M.totais(30),p=M.parados();
+   return {html:'<p>Bom dia. Estou conectado às contas de anúncio e ao CRM da Vale Móveis: campanhas, leads e vendas dos últimos 90 dias.</p>'+
+     '<p>Dois pontos que já olhei hoje: nos últimos 30 dias foram '+BRL(t.invest)+' investidos com ROAS de '+t.roas.toFixed(1).replace('.',',')+'x, e existem '+p.n+' leads recentes sem nenhum contato registrado, somando '+BRL(p.potencial)+' em potencial parado.</p>',
+    oferta:'Quer começar pelos leads parados?',sim:function(){return I.parados()}};
+ },
+ intents:[
+  {kw:['lead parado','leads parado','sem contato','não contat','nao contat','follow','atendimento','demora','respost'],run:I.parados},
+  {kw:['cpl','custo por lead','custo','caro','investimento','gastando','verba','orçamento','orcamento','investi'],run:I.cpl},
+  {kw:['roi','roas','retorno','vale a pena','lucro','receita','vendeu','faturou','remanej'],run:I.roi},
+  {kw:['funil','convers','taxa','qualificado','fechou','ganho','perdido','etapa'],run:I.funil},
+  {kw:['canal','canais','meta','google','facebook','instagram','plataforma','comparar'],run:I.canais},
+  {kw:['campanha','campanhas','anúncio','anuncio','criativo','pausar','ativa'],run:I.campanhas},
+  {kw:['lead','leads'],run:I.funil}
+ ],
+ escopo:'<p>Nesta demonstração eu enxergo quatro bases de uma empresa fictícia: campanhas do Meta Ads e do Google Ads, leads do CRM e vendas, dos últimos 90 dias.</p><p>Posso responder sobre investimento e custo por lead, retorno por campanha e por canal, conversão do funil, leads sem contato e simulação de remanejamento de verba.</p>',
+ sugestaoEscopo:'Quer tentar uma sobre custo por lead, retorno das campanhas ou leads parados?',
+ papel:'Você é o Agente de Marketing da AM BI, conectado às contas de anúncio e ao CRM de uma empresa fictícia (campanhas, leads, vendas).',
+ contexto:function(){
+   var t=M.totais(30),p=M.parados(),f=M.funil(30),v=M.cplMes();
+   return {empresa:'Vale Móveis (fictícia) — varejo com loja física e vendas online, anuncia em Meta Ads e Google Ads',
+     totais_30d:{investido:Math.round(t.invest),leads:t.leads,vendas:t.vendas,receita:Math.round(t.receita),cpl:Math.round(t.cpl),cac:Math.round(t.cac),roas:+t.roas.toFixed(2)},
+     cpl_variacao:{atual:Math.round(v.atual),anterior:Math.round(v.anterior),variacao_pct:+v.var.toFixed(1)},
+     campanhas_30d:M.campanhas(30).map(function(c){return {campanha:c.campanha,canal:c.canal,investido:Math.round(c.invest),cliques:c.cliques,leads:c.leads,cpl:Math.round(c.cpl),vendas:c.vendas,receita:Math.round(c.receita),roas:+c.roas.toFixed(2)}}),
+     canais_30d:M.canais(30).map(function(c){return {canal:c.canal,investido:Math.round(c.invest),leads:c.leads,cpl:Math.round(c.cpl),receita:Math.round(c.receita),roas:+c.roas.toFixed(2),cac:Math.round(c.cac)}}),
+     funil_30d:{leads:f.leads,qualificados:f.qualificados,ganhos:f.ganhos,taxa_qualificacao_pct:+f.txQual.toFixed(1),taxa_fechamento_pct:+f.txGanho.toFixed(1)},
+     leads_sem_contato:{quantidade:p.n,potencial:Math.round(p.potencial),por_campanha:p.porCampanha}};
+ }};
+})();
+
+/* =========================================================
+   INTERFACE
+   ========================================================= */
+var stream=document.getElementById('stream');
+var input=document.getElementById('q');
+var send=document.getElementById('send');
+var chipsBox=document.getElementById('chips');
+var picker=document.getElementById('picker');
+var ATUAL=null,ultimaOferta=null,ocupado=false,MODO_IA=false,SAMPLE=null;
+
+var ORDEM=['gestao','clinica','marketing'];
+ORDEM.forEach(function(id){
+  var n=NICHOS[id];
+  var b=document.createElement('button');
+  b.className='pick';b.type='button';b.setAttribute('role','tab');b.dataset.id=id;
+  b.innerHTML='<span class="n">'+n.nome+'</span><span class="d">'+n.resumo+'</span>';
+  b.onclick=function(){if(ATUAL&&ATUAL.id===id)return;ativar(id)};
+  picker.appendChild(b);
+});
+
+function ativar(id){
+  ATUAL=NICHOS[id];
+  Array.prototype.forEach.call(picker.children,function(b){
+    b.setAttribute('aria-selected',b.dataset.id===id?'true':'false')});
+  document.getElementById('h1').textContent=ATUAL.titulo;
+  document.getElementById('lede').textContent=ATUAL.lede;
+  document.getElementById('empresa').textContent=ATUAL.empresa;
+  document.getElementById('empresaSub').textContent=ATUAL.empresaSub;
+  document.getElementById('agenteNome').textContent='Agente de '+ATUAL.nome;
+  document.getElementById('agenteSub').textContent=ATUAL.resumo;
+  document.getElementById('kpis').innerHTML=ATUAL.kpis().map(function(k){
+    return '<div class="kpi"><div class="k">'+k.k+'</div><div class="v">'+k.v+'</div><div class="d '+k.c+'">'+k.d+'</div></div>'}).join('');
+  document.getElementById('fontes').innerHTML=ATUAL.fontes.map(function(f){
+    var p=f.split(' · ');return '<div class="src"><i></i><b>'+p[0]+'</b>'+(p[1]?' · '+p[1]:'')+'</div>'}).join('');
+  chipsBox.innerHTML='';
+  ATUAL.sugestoes.forEach(function(s){
+    var b=document.createElement('button');b.className='chip';b.type='button';b.textContent=s;
+    b.onclick=function(){if(!ocupado)perguntar(s)};chipsBox.appendChild(b);
+  });
+  input.placeholder=(id==='gestao')?'Pergunte sobre faturamento, atrasos, estoque ou inadimplência...'
+    :(id==='clinica'?'Pergunte sobre agenda, faltas, convênios ou faturamento...'
+    :'Pergunte sobre campanhas, custo por lead, funil ou verba...');
+  stream.innerHTML='';ultimaOferta=null;ocupado=false;send.disabled=false;
+  setTimeout(function(){responder(ATUAL.abertura())},350);
+}
+
+function addUser(t){
+  var d=document.createElement('div');d.className='msg user';
+  d.innerHTML='<div class="bubble"></div>';d.querySelector('.bubble').textContent=t;
+  stream.appendChild(d);rolar();
+}
+function addBot(){
+  var d=document.createElement('div');d.className='msg bot';
+  d.innerHTML='<div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>';
+  stream.appendChild(d);rolar();return d.querySelector('.bubble');
+}
+function rolar(){stream.scrollTop=stream.scrollHeight}
+
+function escreve(el,html,cb){
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){el.innerHTML=html;rolar();if(cb)cb();return}
+  el.innerHTML='';
+  var tmp=document.createElement('div');tmp.innerHTML=html;
+  var nos=Array.prototype.slice.call(tmp.children),i=0;
+  (function proximo(){
+    if(i>=nos.length){if(cb)cb();return}
+    el.appendChild(nos[i]);i++;rolar();
+    setTimeout(proximo,nos[i-1].tagName==='TABLE'?320:380);
+  })();
+}
+
+function responder(res){
+  var bolha=addBot();
+  setTimeout(function(){
+    var html=res.html+(res.oferta?'<p class="ask">'+res.oferta+'</p>':'');
+    escreve(bolha,html);
+    ultimaOferta=res.sim||null;ocupado=false;send.disabled=false;
+  },600+Math.random()*420);
+}
+
+function classifica(txt){
+  var t=txt.toLowerCase(),melhor=null,score=0;
+  ATUAL.intents.forEach(function(it){
+    var s=0;it.kw.forEach(function(k){if(t.indexOf(k)>=0)s+=k.length>6?2:1});
+    if(s>score){score=s;melhor=it}
+  });
+  return score>=1?melhor:null;
+}
+function foraDeEscopo(){
+  return {html:ATUAL.escopo+'<p>Num projeto real é o contrário: o agente é conectado às suas bases, e o limite passa a ser o que a sua operação registra. Se o dado existe no seu sistema, ele entra no escopo.</p>',
+    oferta:ATUAL.sugestaoEscopo};
+}
+function ehSim(t){return /^(sim|pode|claro|manda|quero|isso|ok|bora|vamos|por favor|faz isso|pode sim|quero sim|mostra|show)\b/i.test(t.trim())}
+
+function perguntar(txt){
+  if(!txt||ocupado)return;
+  ocupado=true;send.disabled=true;addUser(txt);input.value='';
+  if(ehSim(txt)&&ultimaOferta){
+    var r=(typeof ultimaOferta==='function')?ultimaOferta():{html:ultimaOferta};
+    ultimaOferta=null;return responder(r);
+  }
+  if(MODO_IA)return responderComIA(txt);
+  var it=classifica(txt);
+  responder(it?it.run():foraDeEscopo());
+}
+send.onclick=function(){perguntar(input.value)};
+input.addEventListener('keydown',function(e){if(e.key==='Enter')perguntar(input.value)});
+
+/* ---------- modo IA ao vivo ---------- */
+var REGRAS=
+ 'Responda SEMPRE em português do Brasil, em no máximo 3 parágrafos curtos, usando apenas os números do JSON fornecido. '+
+ 'Nunca invente números fora do JSON; se o dado não existir, diga que essa base não está nesta demonstração e explique que num projeto real ela seria conectada. '+
+ 'Valores em reais no formato R$ 84.200. Seja proativo: termine SEMPRE oferecendo uma ação concreta (um alerta, um envio automático, um cruzamento de dados) em uma pergunta curta. '+
+ 'Tom direto e profissional, sem bajulação e sem markdown. Escreva em HTML simples usando apenas <p> e <strong>, e a oferta final como <p class="ask">...</p>.';
+
+function responderComIA(txt){
+  var bolha=addBot();
+  var entrada=ATUAL.papel+'\n\n'+REGRAS+'\n\nDADOS:\n'+JSON.stringify(ATUAL.contexto())+'\n\nPERGUNTA: '+txt;
+  SAMPLE([{role:'user',content:entrada}],{modelTier:'default',onText:function(e){
+    bolha.innerHTML=e.text.replace(/```html|```/g,'');rolar();
+  }}).then(function(r){
+    bolha.innerHTML=(r.text||'').replace(/```html|```/g,'');
+    ultimaOferta=null;ocupado=false;send.disabled=false;rolar();
+  }).catch(function(){
+    bolha.innerHTML='';
+    var it=classifica(txt),res=it?it.run():foraDeEscopo();
+    escreve(bolha,res.html+(res.oferta?'<p class="ask">'+res.oferta+'</p>':''));
+    ultimaOferta=res.sim||null;ocupado=false;send.disabled=false;
+  });
+}
+
+(function tentarIA(){
+  try{
+    if(!window.claude||!window.claude.use)return;
+    window.claude.use('sample').then(function(s){
+      if(!s)return;
+      SAMPLE=s;MODO_IA=true;
+      var m=document.getElementById('mode');
+      m.className='mode live';m.innerHTML='<i></i><span>IA ao vivo</span>';
+    }).catch(function(){});
+  }catch(e){}
+})();
+
+ativar('gestao');
+</script>
+</body>
+</html>
